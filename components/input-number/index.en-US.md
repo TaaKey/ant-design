@@ -1,21 +1,18 @@
 ---
 category: Components
-chinese: 数字输入框
-type: Form Controls
-english: InputNumber
+type: Data Entry
+title: InputNumber
 ---
 
 Enter a number within certain range with the mouse or keyboard.
 
-## When to use
+## When To Use
 
 When a numeric value needs to be provided.
 
 ## API
 
-Property, e.g.
-
-| member        | description           | type               | default       |
+| property    | description           | type               | default       |
 |-------------|----------------|--------------------|--------------|
 | min     | min value   | Number | -Infinity        |
 | max     | max vale       | Number      | Infinity           |

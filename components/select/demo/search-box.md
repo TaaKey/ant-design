@@ -1,6 +1,6 @@
 ---
 order: 9
-title: 
+title:
   zh-CN: 搜索框
   en-US: Search Box
 ---
@@ -16,7 +16,7 @@ Autocomplete select with search field.
 
 ````jsx
 import { Input, Select, Button, Icon } from 'antd';
-import jsonp from 'jsonp';
+import jsonp from 'fetch-jsonp';
 import querystring from 'querystring';
 import classNames from 'classnames';
 const Option = Select.Option;
@@ -36,19 +36,21 @@ function fetch(value, callback) {
       code: 'utf-8',
       q: value,
     });
-    jsonp(`http://suggest.taobao.com/sug?${str}`, (err, d) => {
-      if (currentValue === value) {
-        const result = d.result;
-        const data = [];
-        result.forEach((r) => {
-          data.push({
-            value: r[0],
-            text: r[0],
+    jsonp(`https://suggest.taobao.com/sug?${str}`)
+      .then(response => response.json())
+      .then((d) => {
+        if (currentValue === value) {
+          const result = d.result;
+          const data = [];
+          result.forEach((r) => {
+            data.push({
+              value: r[0],
+              text: r[0],
+            });
           });
-        });
-        callback(data);
-      }
-    });
+          callback(data);
+        }
+      });
   }
 
   timeout = setTimeout(fake, 300);
@@ -64,15 +66,16 @@ const SearchInput = React.createClass({
   },
   handleChange(value) {
     this.setState({ value });
-    fetch(value, (data) => this.setState({ data }));
+    fetch(value, data => this.setState({ data }));
   },
   handleSubmit() {
     console.log('输入框内容是: ', this.state.value);
   },
-  handleFocusBlur(e) {
-    this.setState({
-      focus: e.target === document.activeElement,
-    });
+  handleFocus() {
+    this.setState({ focus: true });
+  },
+  handleBlur() {
+    this.setState({ focus: false });
   },
   render() {
     const btnCls = classNames({
@@ -96,8 +99,8 @@ const SearchInput = React.createClass({
             showArrow={false}
             filterOption={false}
             onChange={this.handleChange}
-            onFocus={this.handleFocusBlur}
-            onBlur={this.handleFocusBlur}
+            onFocus={this.handleFocus}
+            onBlur={this.handleBlur}
           >
             {options}
           </Select>

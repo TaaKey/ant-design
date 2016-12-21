@@ -1,29 +1,31 @@
 import React from 'react';
-import MainContent from './MainContent';
 import Promise from 'bluebird';
-
-// locale copy from layout
-const locale = (
-  window.localStorage &&
-    localStorage.getItem('locale') !== 'en-US'
-) ? 'zh-CN' : 'en-US';
+import MainContent from './MainContent';
+import * as utils from '../utils';
 
 export function collect(nextProps, callback) {
-  const pageData = nextProps.location.pathname === 'changelog' ?
-          nextProps.data.CHANGELOG : nextProps.pageData;
+  const pathname = nextProps.location.pathname;
+  const locale = utils.isZhCN(pathname) ? 'zh-CN' : 'en-US';
+  const pageDataPath = pathname.replace('-cn', '').split('/');
+  let pageData = nextProps.pageData;
+  if (!pageData && locale === 'zh-CN') {
+    pageData = nextProps.utils.get(nextProps.data, pageDataPath);
+  }
+  if (!pageData) {
+    callback(404, nextProps);
+    return;
+  }
+
   const pageDataPromise = typeof pageData === 'function' ?
           pageData() : (pageData[locale] || pageData.index[locale] || pageData.index)();
   const promises = [pageDataPromise];
 
-  const pathname = nextProps.location.pathname;
-  const demos = nextProps.utils.get(
-    nextProps.data, [...pathname.split('/'), 'demo']
-  );
+  const demos = nextProps.utils.get(nextProps.data, [...pageDataPath, 'demo']);
   if (demos) {
     promises.push(demos());
   }
   Promise.all(promises)
-    .then((list) => callback(null, {
+    .then(list => callback(null, {
       ...nextProps,
       localizedPageData: list[0],
       demos: list[1],

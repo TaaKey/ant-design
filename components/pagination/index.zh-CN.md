@@ -1,8 +1,8 @@
 ---
 category: Components
-chinese: 分页
+subtitle: 分页
 type: Navigation
-english: Pagination
+title: Pagination
 ---
 
 采用分页的形式分隔长列表，每次只加载一个页面。
@@ -25,11 +25,11 @@ english: Pagination
 | total            | 数据总数                           | Number        | 0                        |
 | defaultPageSize  | 默认的每页条数                      | Number        | 10                       |
 | pageSize         | 每页条数                           | Number        | -                         |
-| onChange         | 页码改变的回调，参数是改变后的页码 | Function      | noop                     |
+| onChange         | 页码改变的回调，参数是改变后的页码 | Function(page)      | noop                     |
 | showSizeChanger  | 是否可以改变 pageSize              | Boolean        | false                    |
 | pageSizeOptions  | 指定每页可以显示多少条             | Array<String> | ['10', '20', '30', '40'] |
-| onShowSizeChange | pageSize 变化的回调                | Function      | noop                     |
+| onShowSizeChange | pageSize 变化的回调                | Function(current, size)      | noop                     |
 | showQuickJumper  | 是否可以快速跳转至某页             | Boolean         | false                    |
 | size             | 当为「small」时，是小尺寸分页      | String        | ""                       |
 | simple           | 当添加该属性时，显示为简单分页     | Object        | -                       |
-| showTotal        | 用于显示总共有多少条数据          | Function      | -                      |
+| showTotal        | 用于显示数据总量和当前数据顺序     | Function(total, range) | -              |

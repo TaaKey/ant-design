@@ -1,9 +1,9 @@
-import * as React from 'react';
+import React from 'react';
 import { Component, PropTypes } from 'react';
 import classNames from 'classnames';
 import calculateNodeHeight from './calculateNodeHeight';
 import assign from 'object-assign';
-import omit from 'object.omit';
+import omit from 'omit.js';
 
 function fixControlledValue(value) {
   if (typeof value === 'undefined' || value === null) {
@@ -27,15 +27,41 @@ function clearNextFrameAction(nextFrameId) {
   }
 }
 
-export default class Input extends Component {
+export interface AutoSizeType {
+  minRows?: number;
+  maxRows?: number;
+};
+
+export interface InputProps {
+  prefixCls?: string;
+  className?: string;
+  type?: string;
+  id?: number | string;
+  value?: any;
+  defaultValue?: any;
+  placeholder?: string;
+  size?: 'large' | 'default' | 'small';
+  disabled?: boolean;
+  readOnly?: boolean;
+  addonBefore?: React.ReactNode;
+  addonAfter?: React.ReactNode;
+  onPressEnter?: React.FormEventHandler<any>;
+  onKeyDown?: React.FormEventHandler<any>;
+  onChange?: React.FormEventHandler<any>;
+  onClick?: React.FormEventHandler<any>;
+  onBlur?: React.FormEventHandler<any>;
+  autosize?: boolean | AutoSizeType;
+  autoComplete?: 'on' | 'off';
+  style?: React.CSSProperties;
+}
+
+export default class Input extends Component<InputProps, any> {
+  static Group: any;
+  static Search: any;
   static defaultProps = {
-    defaultValue: '',
     disabled: false,
     prefixCls: 'ant-input',
     type: 'text',
-    onPressEnter() {},
-    onKeyDown() {},
-    onChange() {},
     autosize: false,
   };
 
@@ -58,12 +84,14 @@ export default class Input extends Component {
     onKeyDown: PropTypes.func,
   };
 
-  constructor(props) {
-    super(props);
-    this.state = {
-      textareaStyles: null,
-    };
-  }
+  nextFrameActionId: number;
+  refs: {
+    input: any;
+  };
+
+  state = {
+    textareaStyles: null,
+  };
 
   componentDidMount() {
     this.resizeTextarea();
@@ -80,17 +108,23 @@ export default class Input extends Component {
   }
 
   handleKeyDown = (e) => {
-    if (e.keyCode === 13) {
-      this.props.onPressEnter(e);
+    const { onPressEnter, onKeyDown } = this.props;
+    if (e.keyCode === 13 && onPressEnter) {
+      onPressEnter(e);
     }
-    this.props.onKeyDown(e);
+    if (onKeyDown) {
+      onKeyDown(e);
+    }
   }
 
   handleTextareaChange = (e) => {
     if (!('value' in this.props)) {
       this.resizeTextarea();
     }
-    this.props.onChange(e);
+    const onChange = this.props.onChange;
+    if (onChange) {
+      onChange(e);
+    }
   }
 
   resizeTextarea = () => {
@@ -98,14 +132,24 @@ export default class Input extends Component {
     if (type !== 'textarea' || !autosize || !this.refs.input) {
       return;
     }
-    const minRows = autosize ? autosize.minRows : null;
-    const maxRows = autosize ? autosize.maxRows : null;
+    const minRows = autosize ? (autosize as AutoSizeType).minRows : null;
+    const maxRows = autosize ? (autosize as AutoSizeType).maxRows : null;
     const textareaStyles = calculateNodeHeight(this.refs.input, false, minRows, maxRows);
     this.setState({ textareaStyles });
   }
 
+  focus() {
+    this.refs.input.focus();
+  }
+
   renderLabledInput(children) {
     const props = this.props;
+
+    // Not wrap when there is not addons
+    if (props.type === 'textarea' || (!props.addonBefore && !props.addonAfter)) {
+      return children;
+    }
+
     const wrapperClassName = `${props.prefixCls}-group`;
     const addonClassName = `${wrapperClassName}-addon`;
     const addonBefore = props.addonBefore ? (
@@ -136,7 +180,6 @@ export default class Input extends Component {
 
   renderInput() {
     const props = assign({}, this.props);
-
     // Fix https://fb.me/react-unknown-prop
     const otherProps = omit(this.props, [
       'prefixCls',
@@ -151,12 +194,10 @@ export default class Input extends Component {
       return props.children;
     }
 
-    const inputClassName = classNames({
-      [prefixCls]: true,
+    const inputClassName = classNames(prefixCls, {
       [`${prefixCls}-sm`]: props.size === 'small',
       [`${prefixCls}-lg`]: props.size === 'large',
-      [props.className]: !!props.className,
-    });
+    }, props.className);
 
     if ('value' in props) {
       otherProps.value = fixControlledValue(props.value);
